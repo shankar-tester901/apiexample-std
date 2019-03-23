@@ -1,0 +1,27 @@
+{
+  "name": "apiexample-std",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shankar-tester901/apiexample-std.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shankar-tester901/apiexample-std/issues"
+  },
+  "homepage": "https://github.com/shankar-tester901/apiexample-std#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express-myconnection": "^1.0.4",
+    "mysql": "^2.16.0",
+    "mysql-connection": "^1.0.2",
+    "path": "^0.12.7"
+  }
+}
