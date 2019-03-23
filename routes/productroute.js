@@ -1,10 +1,12 @@
 const express = require('express');
 var app = express();
+const logger = require('../logger')(__filename);
 
 //show all products
 app.get('/products',(req, res) => {
     req.getConnection(function(error, conn) {
     let sql = "SELECT * FROM product";
+    logger.info(sql);
     let query = conn.query(sql, (err, results) => {
       if(err) throw err;
       res.render('home', {result: results})
@@ -16,6 +18,7 @@ app.get('/products',(req, res) => {
   //show single product
   app.get('/products/:id',(req, res) =>
    {
+       logger.info('showing single product');
   //console.log('invoked Edit ');
   req.getConnection(function(error, conn) {
     let sql = "SELECT * FROM product WHERE product_id="+req.params.id;
@@ -39,6 +42,7 @@ app.get('/products',(req, res) => {
     req.getConnection(function(error, conn) {
     let data = {product_name: req.body.product_name, product_price: req.body.product_price};
     let sql = "INSERT INTO product SET ?";
+    logger.info(sql);
     let query = conn.query(sql, data,(err, results) => {
       if(err) throw err;
       res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
@@ -51,6 +55,7 @@ app.get('/products',(req, res) => {
    // console.log("invoked put");
    req.getConnection(function(error, conn) {
     let sql = "UPDATE product SET product_name='"+req.body.product_name+"', product_price='"+req.body.product_price+"' WHERE product_id="+req.params.id;
+    logger.info(sql);
     let query = conn.query(sql, (err, results) => {
       if(err) throw err;
       res.redirect('/api/products');
@@ -63,6 +68,7 @@ app.get('/products',(req, res) => {
   app.delete('/products/:id',(req, res) => {
     req.getConnection(function(error, conn) {
     let sql = "DELETE FROM product WHERE product_id="+req.params.id+"";
+    logger.info(sql);
     let query = conn.query(sql, (err, results) => {
       if(err) throw err;
        res.redirect('/api/products');
