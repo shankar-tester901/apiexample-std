@@ -1,14 +1,34 @@
-var express = require('express');
+const express = require("express");
+const logger = require("./logger")(__filename);
+const morgan = require("morgan");
+const app = express();
+
 const bodyParser = require('body-parser');
 var path = require('path');
-const app = express();
 const mysql = require('mysql');
 var myConnection  = require('express-myconnection');
 
-/**
- * Store database credentials in a separate config.js file
- * Load the file/module and its values
- */
+const morganFormat = process.env.NODE_ENV !== "production" ? "dev" : "combined";
+
+app.use(
+    morgan(morganFormat, {
+        skip: function(req, res) {
+            return res.statusCode < 400;
+        },
+        stream: process.stderr
+    })
+);
+
+app.use(
+    morgan(morganFormat, {
+        skip: function(req, res) {
+            return res.statusCode >= 400;
+        },
+        stream: process.stdout
+    })
+);
+
+
 var config = require('./config')
 var dbOptions = {
     host:      config.database.host,
@@ -25,20 +45,14 @@ var dbOptions = {
  * request: Creates new connection per new request. Connection is auto close when response ends.
  */
 app.use(myConnection(mysql, dbOptions, 'pool'))
-
-
-
-
 app.set('view engine', 'ejs');
-// parse application/json
 
-const LoggerMiddleware = (req, res, next) => {
-  console.log(`Logged ${req.url} ${req.method} ---- ${new Date()} `)
-  next();
-}
+// const LoggerMiddleware = (req, res, next) => {
+//   logger.info('Logged ${req.url} ${req.method} ---- ${new Date()}')
+//   next();
+// }
 
-app.use(LoggerMiddleware);
-
+// app.use(LoggerMiddleware);
 
 //The body-parser extracts the entire body portion of
 // an incoming request stream and makes it accessible on req.body
@@ -64,7 +78,6 @@ if (req.body && typeof req.body === 'object' && '_method' in req.body)
 
 app.use(express.static('public'));
 
-
 var product = require('./routes/productroute');
 app.use('/api', product);
 
@@ -73,7 +86,37 @@ app.use('/api', product);
 var fun = require('./routes/fun');
 app.use('/bowbow', fun);
 
+//This is parallel to public folder
+app.use(express.static(path.join(__dirname, 'images1')));
+// a convenient variable to refer to the HTML directory
+var images_dir = './images1/';
+
+// routes to serve the static HTML files
+app.get('/image', function(req, res) {
+    res.sendfile(images_dir + 'adults-celebration-ceremony-1211968.jpg');
+});
+
+// routes to serve the static HTML files
+app.get('/indianelephant', function(req, res) {
+   res.sendFile(path.join(__dirname, 'public', 'gautam-arora-317046-unsplash.jpg'));
+});
+
+
+// All errors are sent back as JSON
+app.use((err, req, res, next) => {
+    // Fallback to default node handler
+    if (res.headersSent) {
+        next(err);
+        return;
+    }
+
+    logger.error(err.message, { url: req.originalUrl });
+
+    res.status(500);
+    res.json({ error: err.message });
+});
+
 //Server listening
 app.listen(3000,() =>{
-  console.log('Server started on port 3000...');
+ logger.info('Server started on port 3000...');
 });
